@@ -4,7 +4,6 @@ import subprocess
 import time
 
 from datetime import datetime
-from pathlib  import Path
 
 
 NODE_A = '/tmp/pycore.1/A'
