@@ -21,7 +21,7 @@ Inside the CORE container:
 1. Run `core-cleanup`.
 2. Run the CORE GUI (`core-gui`), open `topology.xml` and start the session.
 3. Run `/opt/core/venv/bin/python3 -u scenario.py > output.txt`
-4. Stop the session.
+4. Stop the session after the scenario ends.
 
 This will dump the terminal output to `output.txt`.
 
