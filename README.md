@@ -27,4 +27,4 @@ This will dump the terminal output to `output.txt`.
 
 # How to create the plots
 
-
+Run `python plot.py`.
