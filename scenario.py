@@ -22,10 +22,12 @@ PACKET_SIZE = 992 # 8 bytes for ICMP header (1000 bytes total)
 
 # Define command to send a 1000 byte packet every second from A to D
 A2D_CMD = f"ping -i 1 -s {PACKET_SIZE} -w {DURATION_1} {NODE_D_IP}"
+A2D_CMD = A2D_CMD + " | awk '" + '{print strftime("%H:%M:%S"), ' + "$0}'" # add timestamp to the ping output
 A2D_CMD = ['vcmd', '-c', NODE_A, '--', 'bash', '-c', A2D_CMD]
 
 # Define command to send a 1000 byte packet every 2 seconds from E to F
 E2F_CMD = f"ping -i 2 -s {PACKET_SIZE} -w {DURATION_2} {NODE_F_IP}"
+E2F_CMD = E2F_CMD + " | awk '" + '{print strftime("%H:%M:%S"), ' + "$0}'" # add timestamp to the ping output
 E2F_CMD = ['vcmd', '-c', NODE_E, '--', 'bash', '-c', E2F_CMD]
 
 # Define command to output throughput data
@@ -42,7 +44,7 @@ print('\nStarting packet delivery from node A to node D at ' + datetime.now().st
 print()
 
 # start packet delivery from A to D
-process_1 = subprocess.Popen(A2D_CMD, stdin=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+process_1 = subprocess.Popen(A2D_CMD, stdout=subprocess.PIPE, stdin=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
 time.sleep(DELAY_2)
 
@@ -50,7 +52,7 @@ print('\nStarting packet delivery from node E to node F at ' + datetime.now().st
 print()
 
 # start packet delivery from E to F
-process_2 = subprocess.Popen(E2F_CMD, stdin=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+process_2 = subprocess.Popen(E2F_CMD, stdout=subprocess.PIPE, stdin=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
 # print packet delivery completion times
 while process_1.returncode is None or process_2.returncode is None:
@@ -63,4 +65,15 @@ while process_1.returncode is None or process_2.returncode is None:
 # Terminate throughput script
 throughput_process.terminate()
 
-print('DONE!')
+# Print the `ping` captured output last to avoid
+# it being mixed up with the throughput output
+process_1_out,  _ = process_1.communicate()
+process_2_out,  _ = process_2.communicate()
+
+for line in process_1_out.splitlines():
+    print(line)
+
+print()
+
+for line in process_2_out.splitlines():
+    print(line)
