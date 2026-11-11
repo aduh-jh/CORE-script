@@ -25,6 +25,8 @@ Inside the CORE container:
 
 This will dump the terminal output to `output.txt`.
 
-# How to create the plots
+# How to generate the plots
 
 Run `python plot.py`.
+
+> I used Python v3.12.2 to generate the plots
