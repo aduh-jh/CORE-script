@@ -72,7 +72,7 @@ def plot_throughput(nodes, ad_start_time, ef_start_time, ad_end_time, ef_end_tim
     plt.show()       
     
 
-def plot_delay(nodes_ping, ad_start_time, ef_start_time, ad_end_time, ef_end_time):
+def plot_delay(nodes_ping, ping_stats, ad_start_time, ef_start_time, ad_end_time, ef_end_time):
     '''
     This function plots the round trip delay
     data from the `ping` utility
@@ -106,6 +106,16 @@ def plot_delay(nodes_ping, ad_start_time, ef_start_time, ad_end_time, ef_end_tim
     subplots[1].plot(times_F, delays_F, linewidth=1)
     subplots[1].set_xlabel('Time')
     subplots[1].set_ylabel('Delay (ms)')
+    
+    stats_d =  'Packets transmitted: ' + ping_stats['D']['packets_transmitted'] + '\n'
+    stats_d += 'Packets received: '    + ping_stats['D']['packets_received']    + '\n'
+    stats_d += 'Packet loss: '         + ping_stats['D']['packet_loss']
+    subplots[0].legend(title=stats_d, loc='upper right')
+    
+    stats_f =  'Packets transmitted: ' + ping_stats['F']['packets_transmitted'] + '\n'
+    stats_f += 'Packets received: '    + ping_stats['F']['packets_received']    + '\n'
+    stats_f += 'Packet loss: '         + ping_stats['F']['packet_loss']
+    subplots[1].legend(title=stats_f, loc='upper left')
     
     for i in range(0, 2):
         subplots[i].axvline(
@@ -149,13 +159,15 @@ OUTPUT_FILE = 'output.txt'
 NODE_D_IP   = '10.0.2.20'
 NODE_F_IP   = '10.0.4.20'
 
-# this dictionary holds all throughput data
+# Stores all throughput data
 # organized into nodes and interfaces
 nodes = {}
 
-# this dictionary holds the round trip
-# delay data
+# stores the round trip delay data
 nodes_ping = {'D': {}, 'F': {}}
+
+# Stores the ping statistics
+ping_stats = {'D': {}, 'F': {}}
 
 # read the output file and extract the data
 with open(OUTPUT_FILE, "r") as output_file:
@@ -198,7 +210,20 @@ with open(OUTPUT_FILE, "r") as output_file:
                 nodes_ping['D'][time] = round_trip_delay
             elif ip == NODE_F_IP:
                 nodes_ping['F'][time] = round_trip_delay
-                    
+                
+        if 'ping statistics' in line:
+            next_line = next(output_file, None).split(' ')
+            stats = {
+                'packets_transmitted': next_line[1],
+                'packets_received':    next_line[4],
+                'packet_loss':         next_line[6]
+            }
+            
+            if NODE_D_IP in line:
+                ping_stats['D'] = stats
+            
+            if NODE_F_IP in line:
+                ping_stats['F'] = stats   
 
 plot_throughput(nodes, ad_start_time, ef_start_time, ad_end_time, ef_end_time)
-plot_delay(nodes_ping, ad_start_time, ef_start_time, ad_end_time, ef_end_time)
+plot_delay(nodes_ping, ping_stats, ad_start_time, ef_start_time, ad_end_time, ef_end_time)
