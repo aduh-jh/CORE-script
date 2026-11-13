@@ -109,12 +109,14 @@ def plot_delay(nodes_ping, ping_stats, ad_start_time, ef_start_time, ad_end_time
     
     stats_d =  'Packets transmitted: ' + ping_stats['D']['packets_transmitted'] + '\n'
     stats_d += 'Packets received: '    + ping_stats['D']['packets_received']    + '\n'
-    stats_d += 'Packet loss: '         + ping_stats['D']['packet_loss']
+    stats_d += 'Packet loss: '         + ping_stats['D']['packet_loss']         + '\n'
+    stats_d += 'Average RTT: '         + ping_stats['D']['rtt_avg']             + 'ms'
     subplots[0].legend(title=stats_d, loc='upper right')
     
     stats_f =  'Packets transmitted: ' + ping_stats['F']['packets_transmitted'] + '\n'
     stats_f += 'Packets received: '    + ping_stats['F']['packets_received']    + '\n'
-    stats_f += 'Packet loss: '         + ping_stats['F']['packet_loss']
+    stats_f += 'Packet loss: '         + ping_stats['F']['packet_loss']         + '\n'
+    stats_f += 'Average RTT: '         + ping_stats['F']['rtt_avg']             + 'ms'
     subplots[1].legend(title=stats_f, loc='upper left')
     
     for i in range(0, 2):
@@ -212,18 +214,21 @@ with open(OUTPUT_FILE, "r") as output_file:
                 nodes_ping['F'][time] = round_trip_delay
                 
         if 'ping statistics' in line:
-            next_line = next(output_file, None).split(' ')
+            next_line      = next(output_file, None).split(' ')
+            next_next_line = next(output_file, None).split('/')
+            
             stats = {
                 'packets_transmitted': next_line[1],
                 'packets_received':    next_line[4],
-                'packet_loss':         next_line[6]
+                'packet_loss':         next_line[6],
+                'rtt_avg':             next_next_line[4]
             }
             
             if NODE_D_IP in line:
                 ping_stats['D'] = stats
             
             if NODE_F_IP in line:
-                ping_stats['F'] = stats   
+                ping_stats['F'] = stats
 
 plot_throughput(nodes, ad_start_time, ef_start_time, ad_end_time, ef_end_time)
 plot_delay(nodes_ping, ping_stats, ad_start_time, ef_start_time, ad_end_time, ef_end_time)
